@@ -17,24 +17,39 @@ public class Processor {
 
     static ObjectMapper mapper = new ObjectMapper();
     static Map<Status, Set<Message>> todoMap = new HashMap<>();
-    static Set<Message> messageSet = new HashSet<>();
+
+    public Processor() {
+        Set<Message> messageSet = new HashSet<>();
+        todoMap.put(Status.INITIAL, messageSet);
+        messageSet = new HashSet<>();
+        todoMap.put(Status.ASSIGNED, messageSet);
+        messageSet = new HashSet<>();
+        todoMap.put(Status.IN_PROGRESS, messageSet);
+        messageSet = new HashSet<>();
+        todoMap.put(Status.DONE, messageSet);
+    }
 
     public void doIt() throws InterruptedException {
-        while (true) {
-            Thread.sleep(900l);
-            this.moveIt();
-            this.readIt();
+        Scanner s = null;
 
+        while (true) {
+            try {
+                s = new Scanner(System.in);
+                System.out.println("Sleep for ");
+                while (s.hasNext()){
+                    Thread.sleep(s.nextInt());
+                    this.moveIt();
+                    this.readIt();
+                }
+            } finally {
+                if (s != null){
+                    s.close();
+                }
+            }
         }
     }
 
     private void moveIt() {
-        //todoMap.put(Status.INITIAL, messageSet);
-        //messageSet.add(message1.getDescription());
-        //Message message = new Message();
-        //messageSet.add(message);
-
-        //System.out.println("messageSet" + todoMap);
 
         for (Map.Entry<Status, Set<Message>> entry : todoMap.entrySet()) {
             System.out.print(entry + ", ");
@@ -79,14 +94,13 @@ public class Processor {
                     Message message2 = mapper.readValue(stringMessage, Message.class);
                     //System.out.println("after " + message1);
                     if (message2.getPriority() == Priority.NONE) {
+                       //get the set set from the map for done, and add to this set
+                        Set<Message> messageSet = todoMap.get(Status.DONE);
                         messageSet.add(message2);
-                        todoMap.put(Status.DONE, messageSet);
                     } else {
+                        Set<Message> messageSet = todoMap.get(Status.INITIAL);
                         messageSet.add(message2);
-                        todoMap.put(Status.INITIAL, messageSet);
                     }
-
-
                 } catch (IOException e) {
                     System.out.println(e.getMessage());
                 }
